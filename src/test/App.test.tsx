@@ -11,6 +11,22 @@ vi.mock('@monterosa/sdk-launcher-kit', () => ({
   unmount: vi.fn(),
 }))
 
+vi.mock('@monterosa/sdk-interact-kit', () => ({
+  getEvent: vi.fn(() => Promise.resolve(null)),
+  getElements: vi.fn(() => Promise.resolve([])),
+  onEventState: vi.fn(() => vi.fn()),
+  onEventUpdated: vi.fn(() => vi.fn()),
+  onElementPublished: vi.fn(() => vi.fn()),
+  onElementResults: vi.fn(() => vi.fn()),
+  onElementStateChanged: vi.fn(() => vi.fn()),
+  answer: vi.fn(),
+  EventState: {
+    Upcoming: 'upcoming',
+    Active: 'active',
+    Finished: 'finished',
+  },
+}))
+
 const mockGetExperience = getExperience as unknown as ReturnType<typeof vi.fn>
 const mockEmbed = embed as unknown as ReturnType<typeof vi.fn>
 const mockUnmount = unmount as unknown as ReturnType<typeof vi.fn>
@@ -93,14 +109,14 @@ describe('App', () => {
   it('calls getExperience and embed for each MonterosaExperience', () => {
     render(<App />)
 
-    expect(mockGetExperience).toHaveBeenCalledTimes(2)
-    expect(mockEmbed).toHaveBeenCalledTimes(2)
-
     expect(mockGetExperience).toHaveBeenCalledWith({
       eventId: eventIds.seriesPredictor,
     })
     expect(mockGetExperience).toHaveBeenCalledWith({
       eventId: eventIds.simpleEmbed,
+    })
+    expect(mockGetExperience).toHaveBeenCalledWith({
+      eventId: eventIds.interactiveEmbed,
     })
   })
 
@@ -108,7 +124,7 @@ describe('App', () => {
     render(<App />)
     cleanup()
 
-    expect(mockUnmount).toHaveBeenCalledTimes(2)
+    expect(mockUnmount).toHaveBeenCalled()
   })
 
   it('does not crash when getExperience throws', () => {

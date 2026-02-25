@@ -1,50 +1,7 @@
-import { useRef, useEffect } from 'react'
-import { getExperience, embed, unmount } from '@monterosa/sdk-launcher-kit'
+import MonterosaExperience from './components/MonterosaExperience'
 import { eventIds } from './config'
 import './App.css'
-
-interface MonterosaExperienceProps {
-  eventId: string
-}
-
-function MonterosaExperience({ eventId }: MonterosaExperienceProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    let isCancelled = false
-
-    try {
-      const experience = getExperience({ eventId })
-      if (!isCancelled) {
-        embed(experience, container)
-      }
-    } catch (error) {
-      console.error('Failed to embed experience', { eventId, error })
-    }
-
-    return () => {
-      isCancelled = true
-      try {
-        if (container) {
-          unmount(container)
-        }
-      } catch (error) {
-        console.error('Failed to unmount experience', { eventId, error })
-      }
-    }
-  }, [eventId])
-
-  return (
-    <div
-      ref={containerRef}
-      className="monterosa-experience-container"
-      style={{ width: '100%', minHeight: 600 }}
-    />
-  )
-}
+import InteractEventView from './components/InteractEventView'
 
 const LAKERS_LOGO = 'https://cdn.nba.com/logos/nba/1610612747/global/L/logo.svg'
 const CELTICS_LOGO = 'https://cdn.nba.com/logos/nba/1610612738/global/L/logo.svg'
@@ -131,16 +88,6 @@ function App() {
         </section>
 
         {/* Series Predictor experience */}
-        {/*
-          EXPERIENCE TYPE: Series Predictor (wrapper)
-          ELEMENTS INSIDE:
-            1x Series Score Predictor — "Predict the final score: Lakers vs Celtics"
-            2x Series Number Predictor — "How many points will LeBron score?" / "How many points will Luka score?"
-            1x Series Carousel Predictor — "Who will be the Lakers' leading scorer tonight?" (player picker)
-            1x Series Prediction — "Will the Lakers win by 10+ points?" (multi-choice: Yes / No / Overtime)
-          USE CASE: A single Series Predictor event wrapping multiple prediction types
-                    into one cohesive game-day prediction experience.
-        */}
         <section className="experience-card experience-card--featured">
           <div className="experience-header">
             <h2 className="card-title">Game Day Predictions</h2>
@@ -168,6 +115,10 @@ function App() {
               <span>Will Lakers win by 10+?</span>
             </div>
           </div>
+          <InteractEventView eventId={eventIds.interactiveEmbed} />
+          <br />
+          <MonterosaExperience eventId={eventIds.interactiveEmbed} />
+          <br />
           <MonterosaExperience eventId={eventIds.seriesPredictor} />
         </section>
 
