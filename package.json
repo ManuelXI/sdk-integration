@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@monterosa/sdk-core": "^0.18.9",
+    "@monterosa/sdk-interact-kit": "^0.18.9",
     "@monterosa/sdk-launcher-kit": "^0.18.9",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
