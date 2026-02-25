@@ -1,49 +1,329 @@
 .app {
   max-width: 960px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 1.5rem 3rem;
+  color: #f5f5f5;
 }
 
-.header {
-  margin-bottom: 2rem;
+/* Navigation */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.header h1 {
-  margin: 0 0 0.5rem 0;
+.nav-brand {
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
 }
 
-.subtitle {
-  color: #888;
-  margin: 0;
-}
-
-.subtitle code {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 0.15em 0.4em;
+.nav-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  padding: 0.25rem 0.6rem;
   border-radius: 4px;
-  font-size: 0.9em;
 }
 
+/* Matchup Hero */
+.matchup-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2.5rem 1rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, rgba(85, 37, 130, 0.25) 0%, rgba(253, 185, 39, 0.1) 50%, rgba(0, 122, 51, 0.2) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.matchup-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.team-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.team-name {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.team-record {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.matchup-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.matchup-label {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #aaa;
+}
+
+.matchup-vs {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.matchup-time {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.matchup-venue {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #999;
+}
+
+/* Content */
 .content {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-.experience-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Info Cards */
+.info-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 1.5rem;
 }
 
-.experience-card h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.4rem;
+.card-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
-.description {
+.card-description {
   color: #aaa;
   margin: 0 0 1.25rem 0;
-  line-height: 1.6;
+  line-height: 1.65;
+}
+
+/* Injury Report */
+.injury-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.injury-col h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ddd;
+}
+
+.injury-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.injury-list li {
+  font-size: 0.9rem;
+  color: #bbb;
+}
+
+.status {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.status--out {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.status--gtd {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.status--probable {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+/* Player Grid */
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.player-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+.player-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.player-headshot {
+  width: 72px;
+  height: 52px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.player-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.player-detail {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+/* Experience Cards */
+.experience-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.experience-card--featured {
+  border-color: rgba(251, 191, 36, 0.25);
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+.experience-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.experience-header .card-title {
+  margin: 0;
+}
+
+.experience-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.15);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+/* Prediction Preview */
+.prediction-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.prediction-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #ccc;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.prediction-icon {
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .matchup-hero {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem 1rem;
+  }
+
+  .matchup-vs {
+    font-size: 2rem;
+  }
+
+  .team-logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .injury-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prediction-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .player-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+
+.monterosa-experience-container iframe {
+  min-height: 600px !important;
 }
