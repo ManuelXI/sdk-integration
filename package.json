@@ -11,7 +11,10 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.15.0",
+    "@auth0/auth0-spa-js": "^2.17.0",
     "@monterosa/sdk-core": "^0.18.9",
+    "@monterosa/sdk-identify-kit": "^0.18.9",
     "@monterosa/sdk-interact-kit": "^0.18.9",
     "@monterosa/sdk-launcher-kit": "^0.18.9",
     "react": "^19.2.0",

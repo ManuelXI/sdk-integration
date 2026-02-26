@@ -1,7 +1,7 @@
 import MonterosaExperience from './components/MonterosaExperience'
 import { eventIds } from './config'
 import './App.css'
-import InteractEventView from './components/InteractEventView'
+import { useAuthenticatedUser } from './hooks/useAuthenticatedUser'
 
 const LAKERS_LOGO = 'https://cdn.nba.com/logos/nba/1610612747/global/L/logo.svg'
 const CELTICS_LOGO = 'https://cdn.nba.com/logos/nba/1610612738/global/L/logo.svg'
@@ -15,13 +15,52 @@ const LAKERS_PLAYERS = [
   { name: 'Dalton Knecht', number: 4, position: 'F', image: 'https://cdn.nba.com/headshots/nba/latest/1040x760/1642261.png' },
 ]
 
+const PLACEHOLDER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 110 110'%3E%3Ccircle cx='55' cy='55' r='55' fill='%2363b3ed'/%3E%3Cpath d='M55 50c8.28 0 15-6.72 15-15s-6.72-15-15-15-15 6.72-15 15 6.72 15 15 15zm0 7.5c-10 0-30 5.02-30 15v3.75c0 2.07 1.68 3.75 3.75 3.75h52.5c2.07 0 3.75-1.68 3.75-3.75V72.5c0-9.98-20-15-30-15z' fill='%23fff'/%3E%3C/svg%3E"
+
 function App() {
+  const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuthenticatedUser()
+
   return (
     <div className="app">
       {/* Navigation */}
       <nav className="nav">
         <span className="nav-brand">SDK Integration Demo</span>
-        <span className="nav-tag">Game Day</span>
+        <div className="nav-right">
+          {isLoading && (
+            <span className="auth-loading">Loading…</span>
+          )}
+          {!isLoading && !isAuthenticated && (
+            <button
+              type="button"
+              className="auth-btn auth-btn--login"
+              onClick={() => loginWithRedirect()}
+            >
+              Log In
+            </button>
+          )}
+          {!isLoading && isAuthenticated && user && (
+            <div className="auth-user">
+              <img
+                src={user.picture ?? PLACEHOLDER_AVATAR}
+                alt={user.name ?? 'User'}
+                className="auth-user__avatar"
+                referrerPolicy="no-referrer"
+              />
+              <div className="auth-user__info">
+                <span className="auth-user__name">{user.name ?? 'User'}</span>
+                <span className="auth-user__email">{user.email ?? ''}</span>
+              </div>
+              <button
+                type="button"
+                className="auth-btn auth-btn--logout"
+                onClick={() => logout()}
+              >
+                Log Out
+              </button>
+            </div>
+          )}
+          <span className="nav-tag">Game Day</span>
+        </div>
       </nav>
 
       {/* Hero — Matchup */}
@@ -115,11 +154,10 @@ function App() {
               <span>Will Lakers win by 10+?</span>
             </div>
           </div>
-          <InteractEventView eventId={eventIds.interactiveEmbed} />
-          <br />
-          <MonterosaExperience eventId={eventIds.interactiveEmbed} />
-          <br />
-          <MonterosaExperience eventId={eventIds.seriesPredictor} />
+          <MonterosaExperience
+            eventId={eventIds.authenticatedEmbed}
+            useIdentity={true}
+          />
         </section>
 
         {/* Original simple embed from GH-31 (kept for reference / comparison) */}
