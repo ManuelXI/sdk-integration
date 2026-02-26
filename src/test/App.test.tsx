@@ -1,14 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 
 import App from '../App'
 import { eventIds } from '../config'
-import { getExperience, embed, unmount } from '@monterosa/sdk-launcher-kit'
+import { getExperience, unmount } from '@monterosa/sdk-launcher-kit'
+import { useAuth0 } from '@auth0/auth0-react'
+
+const mockLoginWithRedirect = vi.fn()
+const mockLogout = vi.fn()
+const mockGetAccessTokenSilently = vi.fn()
+
+vi.mock('@auth0/auth0-react', () => ({
+  useAuth0: vi.fn(),
+}))
 
 vi.mock('@monterosa/sdk-launcher-kit', () => ({
   getExperience: vi.fn(() => ({ id: 'mock-experience' })),
-  embed: vi.fn(),
+  embed: vi.fn(() => Promise.resolve()),
   unmount: vi.fn(),
+  onReady: vi.fn((_experience: unknown, callback: () => void) => {
+    if (typeof callback === 'function') callback()
+    return vi.fn()
+  }),
+}))
+
+vi.mock('@monterosa/sdk-identify-kit', () => ({
+  getIdentify: vi.fn(() => ({})),
+  setCredentials: vi.fn(() => Promise.resolve()),
+  onLoginRequestedByExperience: vi.fn(() => vi.fn()),
 }))
 
 vi.mock('@monterosa/sdk-interact-kit', () => ({
@@ -28,12 +47,25 @@ vi.mock('@monterosa/sdk-interact-kit', () => ({
 }))
 
 const mockGetExperience = getExperience as unknown as ReturnType<typeof vi.fn>
-const mockEmbed = embed as unknown as ReturnType<typeof vi.fn>
 const mockUnmount = unmount as unknown as ReturnType<typeof vi.fn>
+
+function setAuth0Mock(overrides: Partial<ReturnType<typeof useAuth0>> = {}) {
+  vi.mocked(useAuth0).mockReturnValue({
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    loginWithRedirect: mockLoginWithRedirect,
+    getAccessTokenSilently: mockGetAccessTokenSilently,
+    logout: mockLogout,
+    ...overrides,
+  } as ReturnType<typeof useAuth0>)
+}
 
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetAccessTokenSilently.mockResolvedValue('')
+    setAuth0Mock()
   })
 
   it('renders the navigation', () => {
@@ -106,18 +138,16 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('calls getExperience and embed for each MonterosaExperience', () => {
+  it('calls getExperience for each MonterosaExperience with correct eventIds', () => {
     render(<App />)
 
-    expect(mockGetExperience).toHaveBeenCalledWith({
-      eventId: eventIds.seriesPredictor,
-    })
-    expect(mockGetExperience).toHaveBeenCalledWith({
-      eventId: eventIds.simpleEmbed,
-    })
-    expect(mockGetExperience).toHaveBeenCalledWith({
-      eventId: eventIds.interactiveEmbed,
-    })
+    expect(mockGetExperience).toHaveBeenCalledTimes(2)
+    expect(mockGetExperience).toHaveBeenCalledWith(
+      expect.objectContaining({ eventId: eventIds.authenticatedEmbed }),
+    )
+    expect(mockGetExperience).toHaveBeenCalledWith(
+      expect.objectContaining({ eventId: eventIds.simpleEmbed }),
+    )
   })
 
   it('calls unmount for each experience on cleanup', () => {
@@ -125,6 +155,63 @@ describe('App', () => {
     cleanup()
 
     expect(mockUnmount).toHaveBeenCalled()
+  })
+
+  it('shows Log In when not authenticated', () => {
+    setAuth0Mock({ isAuthenticated: false, isLoading: false })
+
+    render(<App />)
+
+    expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /log out/i })).not.toBeInTheDocument()
+  })
+
+  it('shows Loading when auth is loading', () => {
+    setAuth0Mock({ isLoading: true })
+
+    render(<App />)
+
+    expect(screen.getByText(/loading…/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /log in/i })).not.toBeInTheDocument()
+  })
+
+  it('shows user name, email, and Log Out when authenticated', () => {
+    setAuth0Mock({
+      user: { name: 'Jane Doe', email: 'jane@example.com' },
+      isAuthenticated: true,
+      isLoading: false,
+    })
+
+    render(<App />)
+
+    expect(screen.getByText('Jane Doe')).toBeInTheDocument()
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /log in/i })).not.toBeInTheDocument()
+  })
+
+  it('clicking Log In calls loginWithRedirect', () => {
+    setAuth0Mock()
+
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /log in/i }))
+
+    expect(mockLoginWithRedirect).toHaveBeenCalledTimes(1)
+  })
+
+  it('clicking Log Out calls logout with returnTo', () => {
+    setAuth0Mock({
+      user: { name: 'Jane', email: 'jane@example.com' },
+      isAuthenticated: true,
+      isLoading: false,
+    })
+
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /log out/i }))
+
+    expect(mockLogout).toHaveBeenCalledWith({
+      logoutParams: { returnTo: window.location.origin },
+    })
   })
 
   it('does not crash when getExperience throws', () => {
