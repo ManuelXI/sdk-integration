@@ -1,7 +1,10 @@
+import type React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 
 import InteractEventView from '../components/InteractEventView'
+import { NotificationProvider } from '../contexts/NotificationContext'
+import { INTERACT_VOTE_FAILED_ERROR_TOAST } from '../constants/messages'
 import {
   getEvent,
   getElements,
@@ -11,6 +14,10 @@ import {
   onElementStateChanged,
   answer,
 } from '@monterosa/sdk-interact-kit'
+
+function renderWithNotifications(ui: React.ReactElement) {
+  return render(<NotificationProvider>{ui}</NotificationProvider>)
+}
 
 const unsubSpy = vi.fn()
 
@@ -80,7 +87,7 @@ describe('InteractEventView', () => {
   })
 
   it('displays the event name and state after loading', async () => {
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.getByText('Test Event')).toBeInTheDocument()
@@ -90,7 +97,7 @@ describe('InteractEventView', () => {
   })
 
   it('displays element question and answer options', async () => {
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument()
@@ -102,7 +109,7 @@ describe('InteractEventView', () => {
   })
 
   it('shows element type badge', async () => {
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.getByText('trivia-element')).toBeInTheDocument()
@@ -110,7 +117,7 @@ describe('InteractEventView', () => {
   })
 
   it('calls getEvent with the provided eventId', async () => {
-    render(<InteractEventView eventId="my-event-id" />)
+    renderWithNotifications(<InteractEventView eventId="my-event-id" />)
 
     await waitFor(() => {
       expect(mockGetEvent).toHaveBeenCalledWith('my-event-id')
@@ -121,7 +128,7 @@ describe('InteractEventView', () => {
     const mockEvent = makeMockEvent()
     mockGetEvent.mockResolvedValue(mockEvent)
 
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(mockGetElements).toHaveBeenCalledWith(mockEvent)
@@ -129,7 +136,7 @@ describe('InteractEventView', () => {
   })
 
   it('subscribes to event and element updates', async () => {
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(mockOnEventState).toHaveBeenCalled()
@@ -143,7 +150,7 @@ describe('InteractEventView', () => {
   it('shows empty state when event has no elements', async () => {
     mockGetElements.mockResolvedValue([])
 
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.getByText(/no elements published yet/i)).toBeInTheDocument()
@@ -153,7 +160,7 @@ describe('InteractEventView', () => {
   it('shows error-not-found when getEvent returns null', async () => {
     mockGetEvent.mockResolvedValue(null)
 
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.queryByText('Test Event')).not.toBeInTheDocument()
@@ -164,7 +171,7 @@ describe('InteractEventView', () => {
     const mockElement = makeMockElement()
     mockGetElements.mockResolvedValue([mockElement])
 
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.getByText('4')).toBeInTheDocument()
@@ -181,7 +188,7 @@ describe('InteractEventView', () => {
       makeMockElement({ state: 'closed' }),
     ])
 
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument()
@@ -198,7 +205,7 @@ describe('InteractEventView', () => {
       makeMockElement({ hasBeenAnswered: true }),
     ])
 
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument()
@@ -224,7 +231,7 @@ describe('InteractEventView', () => {
       }),
     ])
 
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(screen.getByText(/60%/)).toBeInTheDocument()
@@ -237,7 +244,7 @@ describe('InteractEventView', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     mockGetEvent.mockRejectedValue(new Error('Network error'))
 
-    render(<InteractEventView eventId="evt-1" />)
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalled()
@@ -247,7 +254,7 @@ describe('InteractEventView', () => {
   })
 
   it('cleans up subscriptions on unmount', async () => {
-    const { unmount } = render(<InteractEventView eventId="evt-1" />)
+    const { unmount } = renderWithNotifications(<InteractEventView eventId="evt-1" />)
 
     await waitFor(() => {
       expect(mockOnEventState).toHaveBeenCalled()
@@ -256,5 +263,27 @@ describe('InteractEventView', () => {
     unmount()
 
     expect(unsubSpy).toHaveBeenCalled()
+  })
+
+  it('shows user-visible notification when answer() throws (vote failure)', async () => {
+    mockAnswer.mockImplementation(() => {
+      throw new Error('Network error')
+    })
+    const mockElement = makeMockElement()
+    mockGetElements.mockResolvedValue([mockElement])
+
+    renderWithNotifications(<InteractEventView eventId="evt-1" />)
+
+    await waitFor(() => {
+      expect(screen.getByText('4')).toBeInTheDocument()
+    })
+
+    const optionButton = screen.getByText('4').closest('button')!
+    fireEvent.click(optionButton)
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(screen.getByText(INTERACT_VOTE_FAILED_ERROR_TOAST)).toBeInTheDocument()
+    })
   })
 })

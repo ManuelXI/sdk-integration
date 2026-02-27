@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { configure } from '@monterosa/sdk-core'
 import { Auth0Provider } from '@auth0/auth0-react'
 import { monterosaConfig } from './config'
+import { NotificationProvider } from './contexts/NotificationContext'
 import './index.css'
 import App from './App.tsx'
 
@@ -21,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
         }),
       }}
     >
-      <App />
+      <NotificationProvider>
+        <App />
+      </NotificationProvider>
     </Auth0Provider>
   </StrictMode>,
 )

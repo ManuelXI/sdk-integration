@@ -1,6 +1,12 @@
+const host =
+  import.meta.env.VITE_MONTEROSA_HOST ?? 'cdn-dev.monterosa.cloud'
+const projectId =
+  import.meta.env.VITE_MONTEROSA_PROJECT_ID ??
+  '573e9e0d-a760-4e93-864e-6e2cee618d01'
+
 export const monterosaConfig = {
-  host: 'cdn-dev.monterosa.cloud',
-  projectId: '573e9e0d-a760-4e93-864e-6e2cee618d01',
+  host,
+  projectId,
 } as const
 
 export const eventIds = {
