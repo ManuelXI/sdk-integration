@@ -1,10 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
 
 import App from '../App'
 import { eventIds } from '../config'
+import { NotificationProvider } from '../contexts/NotificationContext'
 import { getExperience, unmount } from '@monterosa/sdk-launcher-kit'
 import { useAuth0 } from '@auth0/auth0-react'
+
+function renderApp() {
+  return render(
+    <NotificationProvider>
+      <App />
+    </NotificationProvider>,
+  )
+}
 
 const mockLoginWithRedirect = vi.fn()
 const mockLogout = vi.fn()
@@ -69,7 +78,7 @@ describe('App', () => {
   })
 
   it('renders the navigation', () => {
-    render(<App />)
+    renderApp()
 
     expect(screen.getByText(/sdk integration demo/i)).toBeInTheDocument()
     const navTag = document.querySelector('.nav-tag')
@@ -78,7 +87,7 @@ describe('App', () => {
   })
 
   it('renders the matchup hero with both teams', () => {
-    render(<App />)
+    renderApp()
 
     expect(screen.getByAltText('Los Angeles Lakers')).toBeInTheDocument()
     expect(screen.getByAltText('Boston Celtics')).toBeInTheDocument()
@@ -87,7 +96,7 @@ describe('App', () => {
   })
 
   it('renders the injury report', () => {
-    render(<App />)
+    renderApp()
 
     expect(
       screen.getByRole('heading', { name: /injury report/i }),
@@ -98,7 +107,7 @@ describe('App', () => {
   })
 
   it('renders key player cards with images', () => {
-    render(<App />)
+    renderApp()
 
     expect(
       screen.getByRole('heading', { name: /key players/i }),
@@ -116,7 +125,7 @@ describe('App', () => {
   })
 
   it('renders the Series Predictor section with preview items', () => {
-    render(<App />)
+    renderApp()
 
     expect(
       screen.getByRole('heading', { name: /game day predictions/i }),
@@ -131,17 +140,19 @@ describe('App', () => {
   })
 
   it('keeps the original GH-31 simple embed section', () => {
-    render(<App />)
+    renderApp()
 
     expect(
       screen.getByRole('heading', { name: /simple embed/i }),
     ).toBeInTheDocument()
   })
 
-  it('calls getExperience for each MonterosaExperience with correct eventIds', () => {
-    render(<App />)
+  it('calls getExperience for each MonterosaExperience with correct eventIds', async () => {
+    renderApp()
 
-    expect(mockGetExperience).toHaveBeenCalledTimes(2)
+    await waitFor(() => {
+      expect(mockGetExperience).toHaveBeenCalledTimes(2)
+    })
     expect(mockGetExperience).toHaveBeenCalledWith(
       expect.objectContaining({ eventId: eventIds.authenticatedEmbed }),
     )
@@ -150,8 +161,12 @@ describe('App', () => {
     )
   })
 
-  it('calls unmount for each experience on cleanup', () => {
-    render(<App />)
+  it('calls unmount for each experience on cleanup', async () => {
+    renderApp()
+
+    await waitFor(() => {
+      expect(mockGetExperience).toHaveBeenCalledTimes(2)
+    })
     cleanup()
 
     expect(mockUnmount).toHaveBeenCalled()
@@ -160,7 +175,7 @@ describe('App', () => {
   it('shows Log In when not authenticated', () => {
     setAuth0Mock({ isAuthenticated: false, isLoading: false })
 
-    render(<App />)
+    renderApp()
 
     expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /log out/i })).not.toBeInTheDocument()
@@ -169,7 +184,7 @@ describe('App', () => {
   it('shows Loading when auth is loading', () => {
     setAuth0Mock({ isLoading: true })
 
-    render(<App />)
+    renderApp()
 
     expect(screen.getByText(/loading…/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /log in/i })).not.toBeInTheDocument()
@@ -182,7 +197,7 @@ describe('App', () => {
       isLoading: false,
     })
 
-    render(<App />)
+    renderApp()
 
     expect(screen.getByText('Jane Doe')).toBeInTheDocument()
     expect(screen.getByText('jane@example.com')).toBeInTheDocument()
@@ -193,7 +208,7 @@ describe('App', () => {
   it('clicking Log In calls loginWithRedirect', () => {
     setAuth0Mock()
 
-    render(<App />)
+    renderApp()
     fireEvent.click(screen.getByRole('button', { name: /log in/i }))
 
     expect(mockLoginWithRedirect).toHaveBeenCalledTimes(1)
@@ -206,7 +221,7 @@ describe('App', () => {
       isLoading: false,
     })
 
-    render(<App />)
+    renderApp()
     fireEvent.click(screen.getByRole('button', { name: /log out/i }))
 
     expect(mockLogout).toHaveBeenCalledWith({
@@ -214,19 +229,21 @@ describe('App', () => {
     })
   })
 
-  it('does not crash when getExperience throws', () => {
+  it('does not crash when getExperience throws', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    mockGetExperience.mockImplementationOnce(() => {
+    mockGetExperience.mockImplementation(() => {
       throw new Error('Network failure')
     })
 
-    render(<App />)
+    renderApp()
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Failed to embed experience',
-      expect.objectContaining({ error: expect.any(Error) }),
-    )
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to embed experience',
+        expect.objectContaining({ error: expect.any(Error) }),
+      )
+    })
 
     expect(
       screen.getByRole('heading', { name: /game day predictions/i }),

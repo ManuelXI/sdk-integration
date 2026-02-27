@@ -11,9 +11,15 @@ import {
     type InteractEvent,
 } from "@monterosa/sdk-interact-kit";
 import { useEffect, useState } from "react";
+import { useNotification } from "../contexts/NotificationContext";
+import {
+    INTERACT_EVENT_LOAD_ERROR_TOAST,
+    INTERACT_VOTE_FAILED_ERROR_TOAST,
+} from "../constants/messages";
 import "./InteractEventView.css";
 
 function InteractEventView({ eventId }: { eventId: string }) {
+    const { addNotification } = useNotification();
     const [event, setEvent] = useState<InteractEvent | null>(null);
     const [elements, setElements] = useState<InteractElement[]>([]);
     const [, setTick] = useState(0);
@@ -28,11 +34,12 @@ function InteractEventView({ eventId }: { eventId: string }) {
                 }
             } catch (error) {
                 console.error(error);
+                addNotification(INTERACT_EVENT_LOAD_ERROR_TOAST, "error");
             }
         };
 
         fetchEvent();
-    }, [eventId]);
+    }, [eventId, addNotification]);
 
     useEffect(() => {
         if (!event) return;
@@ -98,6 +105,7 @@ function InteractEventView({ eventId }: { eventId: string }) {
             answer(element, optionIndex);
         } catch (error) {
             console.error("Vote failed:", error);
+            addNotification(INTERACT_VOTE_FAILED_ERROR_TOAST, "error");
         }
     };
 
