@@ -71,3 +71,45 @@ export default defineConfig([
   },
 ])
 ```
+
+## SDK integration demo (React + TypeScript + Vite)
+
+This project is a small integration demo showing how to embed Monterosa experiences into a React SPA with Auth0 authentication.
+
+It’s built with Vite + React + TypeScript and uses:
+
+- Auth0 for authentication (`@auth0/auth0-react`)
+- Monterosa SDK (`@monterosa/sdk-core`, launcher/identify/interact kits)
+- Vitest + Testing Library for tests
+
+### Getting started
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Configure environment variables:
+
+```bash
+cp env.sample .env
+```
+
+Then edit `.env` and fill in:
+
+- `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`
+- `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE`
+- `VITE_MONTEROSA_HOST`, `VITE_MONTEROSA_PROJECT_ID`
+
+3. Run the app:
+
+```bash
+npm run dev
+```
+
+4. Run tests:
+
+```bash
+npm test
+```

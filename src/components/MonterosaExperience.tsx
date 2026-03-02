@@ -43,6 +43,7 @@ export default function MonterosaExperience({
   const { loginWithRedirect, accessToken } = useAuthenticatedUser()
   const { addNotification } = useNotification()
   const containerRef = useRef<HTMLDivElement>(null)
+  const loginRequestedUnsubRef = useRef<(() => void) | undefined>(undefined)
   const [isEmbedding, setIsEmbedding] = useState(true)
   const [embedError, setEmbedError] = useState<Error | null>(null)
 
@@ -53,8 +54,6 @@ export default function MonterosaExperience({
     setIsEmbedding(true)
     setEmbedError(null)
 
-    let unsubLoginRequested: (() => void) | undefined
-
     try {
       const experience = getExperience({
         eventId,
@@ -62,9 +61,14 @@ export default function MonterosaExperience({
       })
       const identify = useIdentity ? getIdentify({ strategy: 'email' }) : null
       if (identify) {
-        unsubLoginRequested = onLoginRequestedByExperience(identify, () => {
-          loginWithRedirect()
-        })
+        // Ensure we don't keep multiple listeners alive across retries / reruns
+        loginRequestedUnsubRef.current?.()
+        loginRequestedUnsubRef.current = onLoginRequestedByExperience(
+          identify,
+          () => {
+            loginWithRedirect()
+          },
+        )
       }
 
       let lastError: Error | null = null
@@ -104,7 +108,6 @@ export default function MonterosaExperience({
       console.error('Failed to embed experience', { eventId, error })
     } finally {
       setIsEmbedding(false)
-      unsubLoginRequested?.()
     }
   }, [eventId, useIdentity, accessToken, loginWithRedirect, addNotification, embedMaxRetries, embedBackoffMs])
 
@@ -114,6 +117,8 @@ export default function MonterosaExperience({
 
     return () => {
       clearTimeout(timeoutId)
+      loginRequestedUnsubRef.current?.()
+      loginRequestedUnsubRef.current = undefined
       if (container) {
         try {
           unmount(container)
